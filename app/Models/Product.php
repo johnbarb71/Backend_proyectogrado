@@ -9,11 +9,21 @@ class Product extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'codigo',
-        'cantidad',
+        'id',
+        /* 'codigo', */
+        'codigo1',
+        'codigo2',
+        'linea',
         'nombre',
+        'paqxcaja',
+        'unixcaja',
+        'paqxdisp',
         'fecha',
         'estado',
+        'gondola',
+        'bodega',
+        'resultado',
+        'cantidad'
     ];
 
 }

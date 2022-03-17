@@ -29,12 +29,13 @@ class ProductsController extends Controller
     public function store(Request $request)
     {
         //Validamos los datos
-        $data = $request->only('codigo','nombre','cantidad','estado');
+        $data = $request->only('codigo1','nombre','cantidad','estado','linea');
         $validator = Validator::make($data, [
-            'codigo' => 'required|numeric',
+            'codigo1' => 'required|numeric',
             'nombre' => 'required|max:250|string',
             'cantidad' => 'required|numeric',
-            'estado' => 'required|numeric'
+            'estado' => 'required|numeric',
+            'linea' => 'required|numeric'
         ]);
         //Si falla la validación
         if ($validator->fails()) {
@@ -42,10 +43,12 @@ class ProductsController extends Controller
         }
         //Creamos el producto en la BD
         $product = Product::create([
-            'codigo' => $request->codigo,
+            /* 'codigo' => $request->codigo, */
+            'codigo1' => $request->codigo1,
             'nombre' => $request->nombre,
             'cantidad' => $request->cantidad,
             'estado' => $request->estado,
+            'linea' => $request->linea
         ]);
         //Respuesta en caso de que todo vaya bien.
         return response()->json([
@@ -123,5 +126,54 @@ class ProductsController extends Controller
             'message' => 'Producto eliminado correctamente'
         ], Response::HTTP_OK);
     }
-
+    /**
+     * Mostrar Producto por Código.
+     *
+     * @param  \App\Models\Product  $product
+     * @return \Illuminate\Http\Response
+     */
+    public function getProdCod($codigo1)
+    {
+        //Bucamos el producto
+        $product = Product::where('codigo1',$codigo1)->get();
+        //Si el producto no existe devolvemos error no encontrado
+        if ($product->isEmpty()) {
+            return response()->json([
+                'message' => 'Producto no encontrado.'
+            ], 404);
+        }
+        //Si hay producto lo devolvemos
+        return $product;
+    }
+    /**
+     * Método para ingresar cantidades de Gondola y Bodega.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Product  $product
+     * @return \Illuminate\Http\Response
+     */
+    public function ActProdCod(Request $request, $codigo1)
+    {
+        //Validación de datos
+        $data = $request->only('gondola','bodega');
+        $validator = Validator::make($data, [
+            'gondola' => 'required|integer|min:0',
+            'bodega' => 'required|integer|min:0'
+        ]);
+        //Creación de variables y suma de estos para llenar campo en tabla BBDD
+        $bod=$request->bodega;
+        $gon=$request->gondola;
+        $result=$bod+$gon;
+        //Si falla la validación error.
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->messages()], 400);
+        }
+        //Buscamos el producto, actualizamos campos
+        $product = Product::where('codigo1',$codigo1)->update(['gondola' => $request->gondola, 'bodega'=>$request->bodega,'resultado'=>$result]);
+        //Devolvemos los datos actualizados.
+        return response()->json([
+            'message' => 'Producto actualizado correctamente',
+            'data' => $product
+        ], Response::HTTP_OK);
+    }
 }
