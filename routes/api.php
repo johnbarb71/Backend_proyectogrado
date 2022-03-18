@@ -27,6 +27,9 @@ Route::prefix('v1')->group(function () {
         //Todo lo que este dentro de este grupo requiere verificación de usuario.
         Route::post('logout', [AuthController::class, 'logout']);
         Route::post('get-user', [AuthController::class, 'getUser']);
+        Route::put('user/updestuser/{id}', [AuthController::class, 'updEstUser']);
+        Route::put('user/updpassuser/{id}', [AuthController::class, 'updPassUser']);
+        Route::delete('user/eliminar/{id}', [AuthController::class, 'destroy']);
         //Productos
         Route::post('productos', [ProductsController::class, 'store']);
         Route::put('productos/{id}', [ProductsController::class, 'update']);
@@ -35,6 +38,7 @@ Route::prefix('v1')->group(function () {
         Route::get('productos/{id}', [ProductsController::class, 'show']);
         Route::get('productos/producto/{codigo}', [ProductsController::class, 'getProdCod']);
         Route::put('productos/producto/{codigo}', [ProductsController::class, 'ActProdCod']);
+        Route::get('productos/linea/{linea}', [ProductsController::class, 'getProdxProvCod']);
         //Proveedor
         Route::post('proveedor', [ProveedoresController::class, 'store']);
         Route::put('proveedor/{id}', [ProveedoresController::class, 'update']);
@@ -43,6 +47,8 @@ Route::prefix('v1')->group(function () {
         Route::get('proveedor/{id}', [ProveedoresController::class, 'show']);
         Route::get('proveedor/proveedor/{codigo}', [ProveedoresController::class, 'getProvCod']);
         Route::put('proveedor/proveedor/{codigo}', [ProveedoresController::class, 'ActProvCod']);
+
+        
     });
 });
 

@@ -176,4 +176,18 @@ class ProductsController extends Controller
             'data' => $product
         ], Response::HTTP_OK);
     }
+    //Obtenemos lista de productos según proveedor
+    public function getProdxProvCod($linea)
+    {
+        //Bucamos el producto por proveedor
+        $product = Product::where('linea',$linea)->get();
+        //Si el producto no existe devolvemos error no encontrado
+        if ($product->isEmpty()) {
+            return response()->json([
+                'message' => 'Producto no encontrado.'
+            ], 404);
+        }
+        //Si hay producto lo devolvemos
+        return $product;
+    }
 }

@@ -66,12 +66,18 @@ class AuthController extends Controller
                 ], 401);
             }
         } catch (JWTException $e) {
-            //Error chungo
+            //Error de usuario o contraseña
             return response()->json([
                 'message' => 'Error',
             ], 500);
         }
-        //Devolvemos el token
+        //Verificamos el estado del usuario
+        if(Auth::user()->estado == 0){
+            return response()->json([
+                'message' => 'Usuario no activo',
+            ], 500);
+        }
+        //retorna el usuario valido y activo
         return response()->json([
             'token' => $token,
             'user' => Auth::user()
@@ -96,7 +102,7 @@ class AuthController extends Controller
                 'message' => 'User disconnected'
             ]);
         } catch (JWTException $exception) {
-            //Error chungo
+            //Error interno de BBDD o de conexión
             return response()->json([
                 'success' => false,
                 'message' => 'Error'
@@ -117,7 +123,77 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'Invalid token / token expired',
             ], 401);
-        //Devolvemos los datos del usuario si todo va bien. 
+        //Devolvemos los datos del usuario 
         return response()->json(['user' => $user]);
+    }
+    //Funcion para cambiar estado de un usuario
+    public function updEstUser(Request $request, $id)
+    {
+        //Validación de datos
+        $data = $request->only('nombre', 'email', 'estado');
+        $validator = Validator::make($data, [
+            'nombre' => 'required|max:250|string',
+            'email' => 'required|max:250|string',
+            'estado' => 'required|numeric'
+        ]);
+        //Si falla la validación error.
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->messages()], 400);
+        }
+        //Buscamos el usuario
+        $user = User::findOrfail($id);
+        //Actualizamos el usuario.
+        $user->update([
+            'name' => $request->nombre,
+            'email' => $request->email,
+            'estado' => $request->estado,
+        ]);
+        //Devolvemos los datos actualizados.
+        return response()->json([
+            'message' => 'Usuario actualizado correctamente',
+            'data' => $user
+        ], Response::HTTP_OK);
+    }
+    //Funcion para cambiar password de un usuario
+    public function updPassUser(Request $request, $id)
+    {
+        //Validación de datos
+        $data = $request->only('password');
+        $validator = Validator::make($data, [
+            'password' => 'required|min:6|max:50|string'
+        ]);
+        //Si falla la validación error.
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->messages()], 400);
+        }
+        //Buscamos el usuario
+        $user = User::findOrfail($id);
+        //Actualizamos el usuario.
+        $user->update([
+            'password' => bcrypt($request->password)
+        ]);
+        //Devolvemos los datos actualizados.
+        return response()->json([
+            'message' => 'Usuario actualizado correctamente',
+            'data' => $user
+        ], Response::HTTP_OK);
+    }
+    //Eliminar usuario
+    public function destroy($id)
+    {
+        //Buscamos el usuario
+        $user = User::findOrfail($id);
+        //Comprobamos el usuario
+        if($user->role == 2){
+            //Devolvemos la respuesta
+            return response()->json([
+                'message' => 'No se puede eliminar este usuario, por favor consulte al administrador del sistema.'
+            ], Response::HTTP_OK);
+        }
+        //Elimina usuario
+        $user->delete();
+        return response()->json([
+            'message' => 'Usuario eliminado.'
+        ], Response::HTTP_OK);
     }
 }
