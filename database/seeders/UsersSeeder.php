@@ -15,7 +15,7 @@ class UsersSeeder extends Seeder
     public function run()
     {
         //Vaciar la tabla
-        User::truncate();
+        //User::truncate();
         //Crear contraseña encriptada
         $password = bcrypt('123456');
         //Crear usuario
@@ -23,10 +23,16 @@ class UsersSeeder extends Seeder
             "name" => "Administrador",
             "email" => "johnbarb71@gmail.com",
             "password" => $password,
-            "estado" => 1,
-            "role" => 2
+            "role" => 3,
+            "estado" => 1
         ]);
-
+        User::create([
+            "name" => "Jhon H. Barbosa G.",
+            "email" => "johnbarb@hotmail.com",
+            "password" => $password,
+            "role" => 2,
+            "estado" => 1
+        ]);
 
     }
 }

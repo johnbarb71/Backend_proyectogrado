@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use JWTAuth;
 use App\Models\User;
+use App\Models\User_sucursal;
 use Illuminate\Support\Facades\Auth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Symfony\Component\HttpFoundation\Response;
@@ -32,7 +33,8 @@ class AuthController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => bcrypt($request->password)
+            'password' => bcrypt($request->password),
+            'role' => 1
         ]);
         //Nos guardamos el usuario y la contraseña para realizar la petición de token a JWTAuth
         $credentials = $request->only('email', 'password');
@@ -41,6 +43,38 @@ class AuthController extends Controller
             'message' => 'User created',
             'token' => JWTAuth::attempt($credentials),
             'user' => $user
+        ], Response::HTTP_OK);
+    }
+    //Función que utilizaremos para crear al usuario
+    public function crear(Request $request)
+    {
+        //Indicamos que solo queremos recibir name, email y password de la request
+        $data = $request->only('name', 'email', 'password');
+        //Realizamos las validaciones
+        $validator = Validator::make($data, [
+            'name' => 'required|string',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|string|min:6|max:50',
+        ]);
+        //Devolvemos un error si fallan las validaciones
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->messages()], 400);
+        }
+        //Creamos el nuevo usuario
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+            'estado' => $request->estado,
+            'role' => $request->role
+        ]);
+        //Nos guardamos el usuario y la contraseña para realizar la petición de token a JWTAuth
+        $credentials = $request->only('email', 'password');
+        //Devolvemos la respuesta con el token del usuario
+        return response()->json([
+            'message' => 'User created',
+            'tokenNuevoUsuario' => JWTAuth::attempt($credentials),
+            'userCreado' => $user
         ], Response::HTTP_OK);
     }
     //Funcion que utilizaremos para hacer login
@@ -78,9 +112,12 @@ class AuthController extends Controller
             ], 500);
         }
         //retorna el usuario valido y activo
+        $id_user = Auth::user()->id;
+        $id_sucursal = User_sucursal::where('id_user',$id_user)->get();
         return response()->json([
             'token' => $token,
-            'user' => Auth::user()
+            'user' => Auth::user(),
+            'id_sucursal' => $id_sucursal
         ]);
     }
     //Función que utilizaremos para eliminar el token y desconectar al usuario
@@ -130,9 +167,9 @@ class AuthController extends Controller
     public function updEstUser(Request $request, $id)
     {
         //Validación de datos
-        $data = $request->only('nombre', 'email', 'estado');
+        $data = $request->only('name', 'email', 'estado');
         $validator = Validator::make($data, [
-            'nombre' => 'required|max:250|string',
+            'name' => 'required|max:250|string',
             'email' => 'required|max:250|string',
             'estado' => 'required|numeric'
         ]);
@@ -144,9 +181,10 @@ class AuthController extends Controller
         $user = User::findOrfail($id);
         //Actualizamos el usuario.
         $user->update([
-            'name' => $request->nombre,
+            'name' => $request->name,
             'email' => $request->email,
             'estado' => $request->estado,
+            'role' => $request->role
         ]);
         //Devolvemos los datos actualizados.
         return response()->json([
@@ -154,7 +192,7 @@ class AuthController extends Controller
             'data' => $user
         ], Response::HTTP_OK);
     }
-    //Funcion para cambiar password de un usuario
+    //Funcion para cambiar password de un usuario.
     public function updPassUser(Request $request, $id)
     {
         //Validación de datos
@@ -195,5 +233,16 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Usuario eliminado.'
         ], Response::HTTP_OK);
+    }
+
+    //Obterner todos los usuario
+    public function getUsuarios(){
+        return User::get();
+    }
+
+    //Obtener un usuario
+    public function getUsuario($id){
+        return User::findOrfail($id);
+
     }
 }

@@ -15,7 +15,6 @@ class CreateProductsTable extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            /* $table->bigInteger('codigo'); */
             $table->string('codigo1',255);
             $table->string('codigo2',255)->nullable();
             $table->unsignedBigInteger('linea');
@@ -26,10 +25,6 @@ class CreateProductsTable extends Migration
             $table->bigInteger('paqxdisp')->nullable();
             $table->date('fecha')->nullable();
             $table->decimal('estado')->nullable();
-            $table->decimal('gondola')->nullable();
-            $table->decimal('bodega')->nullable();
-            $table->decimal('resultado')->nullable();
-            $table->decimal('cantidad')->nullable();
             $table->timestamps();
             $table->charset = 'utf8mb4';
             $table->collation = 'utf8mb4_spanish_ci';
